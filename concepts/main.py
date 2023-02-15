@@ -8,16 +8,6 @@ from sticking_extractor import sticking_extractor
 
 text_to_note = {"x": lambda dur: Unpitched(duration=Duration(dur)), "-": lambda dur: Rest(duration=Duration(dur))}
 
-
-def make_snare():
-    return Unpitched('C4')
-
-
-def make_hh():
-    hh = Unpitched('G5')
-    hh.notehead = "x"
-    return hh
-
 def get_quarter_length(subdivision, num_divisions):
     """
     Calculates the equivalent quarter note length given the underlying subdivision of the beat, and the number of
