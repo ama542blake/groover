@@ -1,4 +1,4 @@
-from concepts.drumset import make_snare, make_hh, make_kick, make_rest
+from drumset import DrumSet as ds
 from music21.stream import Stream
 from music21.percussion import PercussionChord
 from music21.duration import Duration
@@ -16,19 +16,17 @@ if __name__ == "__main__":
             has_snare = snare[i] == "x"
             has_kick = kick[i] == "x"
             if (not has_hh and not has_snare and not has_kick):
-                measure.append(Rest(duration=Duration(0.5)))
+                measure.append(ds.rest(quarter_length=0.5))
             else:
                 chord_notes = []
                 if has_hh:
-                    chord_notes.append(make_hh())
+                    chord_notes.append(ds.hh())
                 if has_snare:
-                    chord_notes.append(make_snare())
+                    chord_notes.append(ds.snare())
                 if has_kick:
-                    chord_notes.append(make_kick())
+                    chord_notes.append(ds.kick())
                 measure.append(PercussionChord(chord_notes, duration=Duration(0.5)))
         measure.show()
-
-        
     else:
         print("All parts must be same length")
     # Stream(list(map(lambda n: make_hh() if n == "x" else make_rest(), hh))).show()
