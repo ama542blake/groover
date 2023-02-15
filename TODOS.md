@@ -1,11 +1,14 @@
 # General
-- [x] Write DrumSet class
 - [ ] Figure out how to set the project up to support type checking (select one of the options below)
   - [ ] Pyright: https://github.com/microsoft/pyright/blob/main/docs/getting-started.md
   - [ ] MyPy: https://mypy-lang.org/
+- [ ] Devise structure for project: https://docs.python-guide.org/writing/structure/
+  - [ ] Fit existing things within this structure
 
 # Generation
-Nothing to do here for now.
+- [ ] Devise new, more concise syntax for specifying groups of notes (e.g., "sk" might mean snare and kick happening at the same time)
+  - [ ] Document the syntax
+  - [ ] Add functions to parse these strings into PercussionChord objects
 
 # Extraction
 <ul>
