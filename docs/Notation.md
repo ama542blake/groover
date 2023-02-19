@@ -1,8 +1,7 @@
 # Notation
 Groover is intended to enable simple notation of drum set grooves. Each mode has its advantages. There are two ways to input text in Groover: *Disparate Mode* and *Chord Mode*.
 
-## Disparate Mode 
-TODO: come up with better name for this mode
+## Simple Mode 
 In disparate mode, you enter the rhythm for each instrument in your groove *individually*. This means that if your groove uses hi-hat, snare drum, and kick, you'll be asked to enter a line of text for each of these individually (that is, 3 separate lines of text).
 
 This mode may be a good choice, for example, when you are transcribing a groove, and you find it easier to dissect it piece-by-piece (instrument by instrument). On the other hand, it may be a bad choice when you are using at least 1 part of the drum set very sparingly. In this case, you'll be asked to enter the entire rhythm for this part of the drum set, even if it gets used only once every several measures. Finally, the syntax in this mode is incredibly simple to master.
@@ -23,13 +22,11 @@ The syntax for chord mode is more complicated than it is in disparate mode, but 
 Here's a map from character to instrument:
 TODO: this is a work in progress
 *h* - hi-hat
-*H* - hi-hat with pedal
 *c* - crash cymbal 1
 *C* - crash cymbal 2
 *r* - ride cymbal
 *R* - ride bell
 *s* - snare
-*S* - snare rim shot
 *k* - kick
 *1* - high tom
 *2* - mid tom
