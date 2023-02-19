@@ -34,7 +34,7 @@ class TimeSignature:
         self.duration = Duration(self._quarter_length)
 
 
-def parse_time_signature_str(ts_str: str) -> TimeSignature:
+def parse_time_signature(ts_str: str) -> TimeSignature:
     if ts_str == '':
         return TimeSignature((4, 4))
     else:
