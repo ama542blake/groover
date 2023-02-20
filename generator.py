@@ -3,34 +3,42 @@ from typing import Dict, List, Union
 from timesignatureutils import InvalidTimeSignatureException, TimeSignature, parse_time_signature
 from music21.stream.base import Stream
 from music21.percussion import PercussionChord
-from drumset import available_instruments, instrument_descriptors, descriptor_to_string, descriptor_to_notation
+from drumset import Notation, available_instruments, instrument_descriptors, descriptor_to_string, descriptor_to_notation
+from music21.note import Note, Rest
 
 # e.g., "{'k': 'x  xx  x'}"
 InstrumentAndRhythm = Dict[str, str]
-Measure = Stream[PercussionChord]
+Measure = Stream[Union[PercussionChord, Rest]]
 Groove = Stream[Measure]
 
 # each PercussionChord corresponds to each temporal position within the measure\
 # each Stream[PercussionChord] is a measure
 # the Stream[Stream[PercussionChord]] is the entire groove
-def measures_to_stream(measure_strs: List[InstrumentAndRhythm], time_signature: TimeSignature) -> Groove:
+def raw_measures_to_stream(measure_strs: List[InstrumentAndRhythm], time_signature: TimeSignature) -> Groove:
     groove: Groove = Stream()
     for raw_measure in measure_strs:
         measure: Measure = Stream()
 
         for temporal_idx in range(time_signature.measure_length):
+            perc_chord: PercussionChord = PercussionChord()
+            for (instrument, rhythm) in raw_measure:
+                if (rhythm[temporal_idx] != ' '):  # is not a rest
+                    idx_has_note = True
+                    notation: Notation = descriptor_to_notation[instrument]
+                    note: Note = Note(pitch=notation[0], note_head=notation[1], duration=time_signature.duration)
+                    perc_chord.add(note)
             
+            if (len(perc_chord) == 0):  # there are no notes at this temporal position
+                measure.append(Rest(duration=time_signature.duration))
+            else:
+                measure.append(perc_chord)
 
-        for (part, rhythm) in raw_measure:
-            (staff_position, note_head) = descriptor_to_notation[part]
-            for note in rhythm:
-                if note == ' ':
-                    measure
+        groove.append(measure)
+    
+    return groove
 
 
-
-
-def simple_generator():
+def simple_generator() -> Groove:
     ts_valid: bool = False
     time_sig = None
     while not ts_valid:
@@ -62,16 +70,18 @@ def simple_generator():
 
     measures: List[InstrumentAndRhythm] = []  # indices are measure_num - 1
     for measure_idx in range(num_measures):
+        print(f'measure length should be {time_sig.measure_length}')
         for (descriptor_idx, descriptor) in enumerate(to_use):
             this_rhythm = ''
             while len(this_rhythm) != time_sig.measure_length:
                 this_rhythm = input(f'Measure {measure_idx + 1} {descriptor_to_string[descriptor]} rhythm: ')
+                print(len(this_rhythm))
             if descriptor_idx == 0:
                 measures.append({descriptor: this_rhythm})
             else:
                 measures[measure_idx][descriptor] = this_rhythm
 
-    measures_to_streams(measures)
+    return raw_measures_to_stream(measures, time_signature=time_sig)
             
     
     
