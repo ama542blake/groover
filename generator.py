@@ -1,7 +1,7 @@
 # see Notation.mnd
 from re import sub
 from typing import Dict, List, Union
-from timesignatureutils import InvalidTimeSignatureException, TimeSignature, parse_time_signature
+from timesignatureutils import InvalidTimeSignatureException, TemporalProperties, parse_time_signature
 from music21.stream.base import Stream
 from music21.percussion import PercussionChord
 from drumset import Notation, available_instruments, instrument_descriptors, descriptor_to_string, descriptor_to_notation
@@ -13,10 +13,12 @@ InstrumentAndRhythm = Dict[str, str]
 Measure = Stream[Union[PercussionChord, Rest]]
 Groove = Stream[Union[PercussionClef, Measure]]
 
+def get_time_signature():
+
 # each PercussionChord corresponds to each temporal position within the measure\
 # each Stream[PercussionChord] is a measure
 # the Stream[Stream[PercussionChord]] is the entire groove
-def raw_measures_to_stream(measure_strs: List[InstrumentAndRhythm], time_signature: TimeSignature) -> Groove:
+def raw_measures_to_stream(measure_strs: List[InstrumentAndRhythm], time_signature: TemporalProperties) -> Groove:
     groove: Groove = Stream()
     groove.append(PercussionClef())
     for measure_dict in measure_strs:
@@ -47,7 +49,7 @@ def simple_generator() -> Groove:
     time_sig = None
     while not ts_valid:
         try:
-            time_sig: Union[TimeSignature, None] = parse_time_signature(input('Enter a time signature, or hit enter for 4/4\n'))
+            time_sig: Union[TemporalProperties, None] = parse_time_signature(input('Enter a time signature, or hit enter for 4/4\n'))
             ts_valid = True  # parsing will fail if it's not valid
         except InvalidTimeSignatureException:
             continue
@@ -62,7 +64,7 @@ def simple_generator() -> Groove:
             subdivision = -1
 
     # add the subdivision to the time signature
-    time_sig = TimeSignature(beats=time_sig.beats, beat_value=time_sig.beat_value, subdivision=subdivision)
+    time_sig = TemporalProperties(beats=time_sig.beats, beat_value=time_sig.beat_value, subdivision=subdivision)
 
     num_measures: int = 0
     while(num_measures < 1):
