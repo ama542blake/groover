@@ -1,5 +1,5 @@
 from enum import Enum, auto
-from typing import Dict, Tuple
+from typing import Dict
 from music21.duration import Duration
 from music21.meter.base import TimeSignature
 
@@ -54,12 +54,12 @@ class TemporalProperties:
             raise Exception("Numerator of time signature can't be NONE")
         if self.time_signature.denominator is None:
             raise Exception("Denominator of time signature can't be NONE")
-        self._subdivide_by = subdivide_by 
+        self._subdivide_by = subdivide_by
         # the number of temporal slots per measure = (beats/measure) * (subdivisions/beat) -> subdivisions/measure
         # or, more simply, the number of notes to collet per part per measure
         self.subdivisions_per_measure = self.time_signature.numerator * self._subdivide_by
         # calculate the fraction of a quarter note each subdivion in the measure takes up - used to determine note duration
-        self._quarter_length = TemporalProperties._beat_value_to_quarter_length[self.time_signature.denominator] / self.time_signature.numerator
+        self._quarter_length = (TemporalProperties._beat_value_to_quarter_length[self.time_signature.denominator]) / self._subdivide_by
         self.duration = Duration(quarterLength=self._quarter_length)
 
             
