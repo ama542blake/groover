@@ -2,9 +2,9 @@
 from re import sub
 from typing import Dict, List, Union
 from timesignatureutils import InvalidTimeSignatureException, TemporalProperties, parse_time_signature
-from music21.stream.base import Stream
+from music21.stream.base import Part, Measure
 from music21.percussion import PercussionChord
-from drumset import Notation, available_instruments, instrument_descriptors, descriptor_to_string, descriptor_to_notation
+from drumset import Notation, instrument_descriptors, descriptor_to_string, descriptor_to_notation
 from music21.note import Note, Rest
 from music21.clef import PercussionClef
 from music21.meter.base import TimeSignature
@@ -12,29 +12,27 @@ from json import dumps
 
 # e.g., "{'k': 'x  xx  x'}"
 InstrumentAndRhythm = Dict[str, str]
-Measure = Stream[Union[PercussionChord, Rest]]
-Groove = Stream[Measure]
+Groove = Part
 
 # each PercussionChord corresponds to each temporal position within the measure\
 # each Stream[PercussionChord] is a measure
 # the Stream[Stream[PercussionChord]] is the entire groove
 def raw_measures_to_stream(measure_strs: List[InstrumentAndRhythm], temporal_properties: TemporalProperties) -> Groove:
-    # TODO: Utilize the music 21 built in measure
-    # TODO: add time sig and clef to the first Measure
-    groove: Groove = Stream()
+    groove: Groove = Groove()
 
     groove.append(PercussionClef())
-    for measure_dict in measure_strs:
-        measure: Measure = Stream()
+    for (measure_idx, measure_dict) in enumerate(measure_strs):
+        measure: Measure = Measure()
+        if (measure_idx == 0):
+            measure.append(temporal_properties.time_signature)
 
         for subdivision_idx in range(temporal_properties.subdivisions_per_measure):
-            this_time_idx_pchord: PercussionChord = PercussionChord()
+            this_time_idx_pchord: PercussionChord = PercussionChord(duration=temporal_properties.duration)
             for (instrument, rhythm) in measure_dict.items():
                 if (rhythm[subdivision_idx] != ' '):  # is not a rest
                     notation: Notation = descriptor_to_notation[instrument]
                     note: Note = Note(pitch=notation[0])
                     note.notehead = notation[1]
-                    note.duration = temporal_properties.duration
                     this_time_idx_pchord.add(note)
             
             if (len(this_time_idx_pchord) == 0):  # there are no notes at this temporal position
@@ -101,5 +99,6 @@ def simple_generator() -> Groove:
             else:
                 measures[measure_idx][descriptor] = this_rhythm
 
+    print(type(raw_measures_to_stream(measures, temporal_properties=temporal_properties)[0][2]))
     return raw_measures_to_stream(measures, temporal_properties=temporal_properties)
     

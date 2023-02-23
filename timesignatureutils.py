@@ -60,6 +60,6 @@ class TemporalProperties:
         self.subdivisions_per_measure = self.time_signature.numerator * self._subdivide_by
         # calculate the fraction of a quarter note each subdivion in the measure takes up - used to determine note duration
         self._quarter_length = (TemporalProperties._beat_value_to_quarter_length[self.time_signature.denominator]) / self._subdivide_by
-        self.duration = Duration(quarterLength=self._quarter_length)
+        self.duration = Duration(self._quarter_length)
 
             
