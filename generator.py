@@ -1,4 +1,3 @@
-# see Notation.mnd
 from re import sub
 from typing import Dict, List, Union
 from timesignatureutils import InvalidTimeSignatureException, TemporalProperties, parse_time_signature
@@ -11,14 +10,11 @@ from music21.meter.base import TimeSignature
 from json import dumps
 
 # e.g., "{'k': 'x  xx  x'}"
-InstrumentAndRhythm = Dict[str, str]
-Groove = Part
+DescriptorToRhythmMap = Dict[str, str]
 
 # each PercussionChord corresponds to each temporal position within the measure\
-# each Stream[PercussionChord] is a measure
-# the Stream[Stream[PercussionChord]] is the entire groove
-def raw_measures_to_stream(measure_strs: List[InstrumentAndRhythm], temporal_properties: TemporalProperties) -> Groove:
-    groove: Groove = Groove()
+def raw_measures_to_stream(measure_strs: List[DescriptorToRhythmMap], temporal_properties: TemporalProperties) -> Part:
+    groove: Part = Part()
 
     groove.append(PercussionClef())
     for (measure_idx, measure_dict) in enumerate(measure_strs):
@@ -45,8 +41,7 @@ def raw_measures_to_stream(measure_strs: List[InstrumentAndRhythm], temporal_pro
     return groove
 
 
-def simple_generator() -> Groove:
-    # TODO: refactor collection of temporal properties elsewhere
+def collect_temporal_properties() -> TemporalProperties:
     ts_valid: bool = False
     time_sig = None
     while not ts_valid:
@@ -66,9 +61,10 @@ def simple_generator() -> Groove:
             subdivision = -1
 
     # add the subdivision to the time signature
+    return TemporalProperties(time_signature=time_sig, subdivide_by=subdivision)
 
-    temporal_properties: TemporalProperties = TemporalProperties(time_signature=time_sig, subdivide_by=subdivision)
 
+def collect_num_measures() -> int:
     num_measures: int = 0
     while(num_measures < 1):
         try:  # will throw exception if input is not numeric
@@ -76,6 +72,10 @@ def simple_generator() -> Groove:
         except:
             continue
 
+    return num_measures
+
+
+def collect_instruments_to_use() -> str:
     # input a string like "skh" -> snare, kick, hi-hat
     to_use = ''
     while to_use == '':
@@ -85,8 +85,14 @@ def simple_generator() -> Groove:
                 print(f'"{inst}" is not a valid option')
                 to_use = ''  # will force new input
 
+    return to_use
 
-    measures: List[InstrumentAndRhythm] = []  # indices are measure_num - 1
+
+def simple_generator() -> Part:
+    temporal_properties: TemporalProperties = collect_temporal_properties()
+    num_measures: int = collect_num_measures()
+    to_use: str = collect_instruments_to_use()
+    measures: List[DescriptorToRhythmMap] = []  # indices are measure_num - 1
 
     print(f'Input your groove. Each measure should have {temporal_properties.subdivisions_per_measure} notes/rests per part')
     for measure_idx in range(num_measures):
@@ -99,6 +105,5 @@ def simple_generator() -> Groove:
             else:
                 measures[measure_idx][descriptor] = this_rhythm
 
-    print(type(raw_measures_to_stream(measures, temporal_properties=temporal_properties)[0][2]))
     return raw_measures_to_stream(measures, temporal_properties=temporal_properties)
     
