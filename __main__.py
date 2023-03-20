@@ -1,7 +1,14 @@
-from generator import simple_generator
+from generator import complex_generator, simple_generator
+
+SIMPLE_MODE_SELECTOR = 'simple'
+COMPLEX_MODE_SELECTOR = 'complex'
 
 if __name__ == "__main__":
-    simple_generator().show()
+    mode = input(f"Enter mode - '{SIMPLE_MODE_SELECTOR}' or '{COMPLEX_MODE_SELECTOR}'\n")
+    if mode == SIMPLE_MODE_SELECTOR:
+        simple_generator().show()
+    elif mode == COMPLEX_MODE_SELECTOR:
+        complex_generator().show()
 
 # for extractor
 # if __name__ == "__main__":

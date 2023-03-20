@@ -1,5 +1,6 @@
 from re import sub
-from typing import Dict, List, Union
+import this
+from typing import Dict, List, Set, Union
 from timesignatureutils import InvalidTimeSignatureException, TemporalProperties, parse_time_signature
 from music21.stream.base import Part, Measure
 from music21.percussion import PercussionChord
@@ -93,12 +94,13 @@ def simple_generator() -> Part:
     num_measures: int = collect_num_measures()
     to_use: str = collect_instruments_to_use()
     measures: List[DescriptorToRhythmMap] = []  # indices are measure_num - 1
+    subdivs_per_measure = temporal_properties.subdivisions_per_measure
 
-    print(f'Input your groove. Each measure should have {temporal_properties.subdivisions_per_measure} notes/rests per part')
+    print(f'Input your groove. Each measure should have {subdivs_per_measure} notes/rests per part')
     for measure_idx in range(num_measures):
         for (descriptor_idx, descriptor) in enumerate(to_use):
             this_rhythm = ''
-            while len(this_rhythm) != temporal_properties.subdivisions_per_measure:
+            while len(this_rhythm) != subdivs_per_measure:
                 this_rhythm = input(f'Measure {measure_idx + 1} {descriptor_to_string[descriptor]} rhythm: ')
             if descriptor_idx == 0:
                 measures.append({descriptor: this_rhythm})
@@ -106,4 +108,46 @@ def simple_generator() -> Part:
                 measures[measure_idx][descriptor] = this_rhythm
 
     return raw_measures_to_stream(measures, temporal_properties=temporal_properties)
-    
+
+
+COMPLEX_REST_CHARACTER = '_'  # the character that indicates a rest in the complex mode
+COMPLEX_SLICE_CHARACTER = ' '  # the character that specifies the end of a temporal slice in complex mode
+
+
+def determine_descriptors_used(complex_measure_str: str) -> Set[str]:
+    return set(complex_measure_str) - set((COMPLEX_SLICE_CHARACTER, COMPLEX_SLICE_CHARACTER))
+
+
+def parse_complex_measure(raw_complex_measure: str) -> DescriptorToRhythmMap:
+    # this method doesn't check to make sure length of the measure is correct - assumes this is done elsewhere
+    descriptors_used: Set[str] = determine_descriptors_used(raw_complex_measure)
+    mapped = dict.fromkeys(descriptors_used, '')
+    # ensure no empty strings in the list (in case extra separator spaces are used)
+    parsed_measure = filter(lambda item: item != '', raw_complex_measure.split(' '))
+    temporal_slice: Set[str]  # can't annotate in for loop
+    for temporal_slice in map(lambda m: set(m), parsed_measure):
+        # TODO: make sure '_' can't be snuck in with other descriptors - e.g. 'h_s'
+        # the descriptors which ARE used in this temporal slice
+        for descriptor in set(temporal_slice) & descriptors_used:
+            mapped[descriptor] += 'x'
+        # the descriptors which are NOT used in this temporal slice
+        for descriptor in descriptors_used - set(temporal_slice):
+            mapped[descriptor] += ' '
+        
+    return mapped
+
+
+def complex_generator() -> Part:
+    temporal_properties: TemporalProperties = collect_temporal_properties()
+    num_measures: int = collect_num_measures()
+    measures: List[DescriptorToRhythmMap] = []  # indices are measure_num - 1
+    subdivs_per_measure = temporal_properties.subdivisions_per_measure
+
+    print(f'Input your groove. Each measure should have {subdivs_per_measure} notes/rests per measure')
+    for measure_idx in range(num_measures):
+        this_measure = input(f'Measure {measure_idx + 1}: ')
+        # TODO: make sure this is correct length
+        this_measure_map: DescriptorToRhythmMap = parse_complex_measure(this_measure)
+        measures.append(this_measure_map)
+
+    return raw_measures_to_stream(measures, temporal_properties=temporal_properties)
