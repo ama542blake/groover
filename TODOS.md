@@ -5,9 +5,17 @@
 - Devise structure for project: https://docs.python-guide.org/writing/structure/
   - Fit existing things within this structure
 
+
+# Housekeeping
+- Write function docstrings for generator.py
+- Mark internal methods with single leading underscore in generator.py (https://dbader.org/blog/meaning-of-underscores-in-python)
+- Ensure type annotations exist and are correct in generator.py
+- Document the syntax
+
+
 # Generation
-  - Document the syntax
-  - Support tupletsd
+  - Error handling
+  - Support tuplets
   - Assess feasibility/utility of the command list below
   - Add commands
     - Repeat previous measure for part
@@ -27,7 +35,7 @@
       - For some amount of time (e.g., groove is generally 8th note, but beat 4 should be an 8th note triplet)
   - Document commands
   - Document the "Simple" generator mode
-  - Implement the "Chord" generator mode
+  - Implement the "Complex" generator mode
   
 # Extraction
 <ul>

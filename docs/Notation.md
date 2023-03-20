@@ -12,7 +12,7 @@ A lowercase *x* represents the presence of a note at the location it's entered, 
 ### Examples
 **TODO: show sheet music examples along with what the input would look like to create it**
 
-## Chord Mode
+## Complex Mode
 TODO: come up with better name for this mode
 In chord mode, you group pieces of the drumset together when they are to be played together. This means that when the snare, hi-hat, and kick are all meant to be played at the exact same time, then you'd notate this as "skb" (see the section on syntax below). Because there are no spaces between these letters, the system knows that these notes are all meant to be played together.
 
@@ -32,7 +32,7 @@ TODO: this is a work in progress
 *2* - mid tom
 *3* - floor tom
 
-TODO: this is worder horribly
+TODO: this is worded horribly
 The space character behaves differently in chord mode than in disparate mode. Here, the space character effectively movus through time. To represent the absence of any notes at a point in time, the underscore character *_* is used. The order of characters in each grouping does not matter, e.g., "hk" is the same as "kh".
 
 ### Examples
