@@ -5,11 +5,8 @@
 - Devise structure for project: https://docs.python-guide.org/writing/structure/
   - Fit existing things within this structure
 
-
 # Housekeeping
-- Ensure type annotations exist and are correct in generator.py
 - Document the syntax
-
 
 # Generation
   - Error handling

@@ -10,6 +10,8 @@ from music21.clef import PercussionClef
 from music21.meter.base import TimeSignature
 from json import dumps
 
+"""Provides the simple and complex generators."""
+
 # e.g., "{'k': 'x  xx  x'}"
 DescriptorToRhythmMap = Dict[str, str]
 
@@ -25,7 +27,7 @@ def simple_generator() -> Part:
     num_measures: int = _collect_num_measures()
     to_use: str = _collect_instruments_to_use()
     measures: List[DescriptorToRhythmMap] = []  # indices are measure_num - 1
-    subdivs_per_measure = temporal_properties.subdivisions_per_measure
+    subdivs_per_measure: int = temporal_properties.subdivisions_per_measure
 
     print(f'Input your groove. Each measure should have {subdivs_per_measure} notes/rests per part')
     for measure_idx in range(num_measures):
@@ -38,7 +40,7 @@ def simple_generator() -> Part:
             else:
                 measures[measure_idx][descriptor] = this_rhythm
 
-    return raw_measures_to_stream(measures, temporal_properties=temporal_properties)
+    return _raw_measures_to_stream(measures, temporal_properties=temporal_properties)
 
 
 def complex_generator() -> Part:
@@ -54,7 +56,7 @@ def complex_generator() -> Part:
     temporal_properties: TemporalProperties = _collect_temporal_properties()
     num_measures: int = _collect_num_measures()
     measures: List[DescriptorToRhythmMap] = []  # indices are measure_num - 1
-    subdivs_per_measure = temporal_properties.subdivisions_per_measure
+    subdivs_per_measure: int = temporal_properties.subdivisions_per_measure
 
     print(f'Input your groove. Each measure should have {subdivs_per_measure} notes/rests per measure')
     for measure_idx in range(num_measures):
@@ -94,9 +96,9 @@ def _raw_measures_to_stream(measure_strs: List[DescriptorToRhythmMap], temporal_
 
         for subdivision_idx in range(temporal_properties.subdivisions_per_measure):
             this_time_idx_pchord: PercussionChord = PercussionChord(duration=temporal_properties.duration)
-            for (instrument, rhythm) in measure_dict.items():
+            for (descriptor, rhythm) in measure_dict.items():
                 if (rhythm[subdivision_idx] != ' '):  # is not a rest
-                    notation: Notation = descriptor_to_notation[instrument]
+                    notation: Notation = descriptor_to_notation[descriptor]
                     note: Note = Note(pitch=notation[0])
                     note.notehead = notation[1]
                     this_time_idx_pchord.add(note)
@@ -121,10 +123,10 @@ def _collect_temporal_properties() -> TemporalProperties:
     """
 
     ts_valid: bool = False
-    time_sig = None
+    time_sig: Union[TimeSignature, None] = None
     while not ts_valid:
         try:
-            time_sig: Union[TimeSignature, None] = parse_time_signature(input('Enter a time signature, or hit enter for 4/4: '))
+            time_sig = parse_time_signature(input('Enter a time signature, or hit enter for 4/4: '))
             ts_valid = True  # parsing in the line above will fail if it's not valid
         except InvalidTimeSignatureException:
             continue
