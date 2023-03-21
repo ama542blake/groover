@@ -13,8 +13,25 @@ from json import dumps
 # e.g., "{'k': 'x  xx  x'}"
 DescriptorToRhythmMap = Dict[str, str]
 
-# each PercussionChord corresponds to each temporal position within the measure\
+# each PercussionChord corresponds to each temporal position within the measure
 def raw_measures_to_stream(measure_strs: List[DescriptorToRhythmMap], temporal_properties: TemporalProperties) -> Part:
+    """
+    Takes raw measures (as strings) and converts them to a drum set Part.
+    
+    The input dictionary mapping descriptors to the string reprresentation of their rhythms should
+    have exactly the number of characters are there are subdivisions per measure (which is dictated
+    by the passed TemporalProperties argument). Any non-space character represents the presence of
+    that instrument at that temporal slice. Space characters represent the lack of presence of an
+    instrument at that temporal slice.
+
+    Args:
+        measure_strs (List[DescriptorToRhythmMap]): A dictionary mapping from instrument descriptors to their rhythms.
+        temporal_properties (TemporalProperties): An object specifying properties about how time is to be divided for the part.
+
+    Returns:
+        Part: A Part object that represents the passed set of raw strings.
+    """
+
     groove: Part = Part()
 
     groove.append(PercussionClef())
@@ -43,12 +60,20 @@ def raw_measures_to_stream(measure_strs: List[DescriptorToRhythmMap], temporal_p
 
 
 def collect_temporal_properties() -> TemporalProperties:
+    """
+    Collects temporal information from the user. Temporal information includes all
+    information needed to determine time signature and note duration.
+
+    Returns:
+        TemporalProperties: An object specifying temporal information for the groove.
+    """
+
     ts_valid: bool = False
     time_sig = None
     while not ts_valid:
         try:
             time_sig: Union[TimeSignature, None] = parse_time_signature(input('Enter a time signature, or hit enter for 4/4: '))
-            ts_valid = True  # parsing will fail if it's not valid
+            ts_valid = True  # parsing in the line above will fail if it's not valid
         except InvalidTimeSignatureException:
             continue
     assert time_sig is not None
@@ -66,6 +91,13 @@ def collect_temporal_properties() -> TemporalProperties:
 
 
 def collect_num_measures() -> int:
+    """
+    Asks the user how many measures the groove should be.
+
+    Returns:
+        int: The number entered by the user.
+    """
+
     num_measures: int = 0
     while(num_measures < 1):
         try:  # will throw exception if input is not numeric
@@ -77,7 +109,15 @@ def collect_num_measures() -> int:
 
 
 def collect_instruments_to_use() -> str:
-    # input a string like "skh" -> snare, kick, hi-hat
+    """
+    Asks the user to input which instruments they'd like to include in the groove.
+    The user inputs a string of descriptors.
+    E.g., 'skh' means that the user wants the groove to consist of snare, kick, and hi-hat.
+
+    Returns:
+        str: The descriptor string as entered by the user.
+    """
+
     to_use = ''
     while to_use == '':
         to_use = input(f'Which instruments do you want to use? Your options are:\n{instrument_descriptors}\n')
@@ -90,6 +130,13 @@ def collect_instruments_to_use() -> str:
 
 
 def simple_generator() -> Part:
+    """
+    Guides the user through creating a groove using the simple generator.
+
+    Returns:
+        Part: The Part object, which can be rendered as musical notation or further processed.
+    """
+
     temporal_properties: TemporalProperties = collect_temporal_properties()
     num_measures: int = collect_num_measures()
     to_use: str = collect_instruments_to_use()
@@ -115,10 +162,31 @@ COMPLEX_SLICE_CHARACTER = ' '  # the character that specifies the end of a tempo
 
 
 def determine_descriptors_used(complex_measure_str: str) -> Set[str]:
+    """
+    Intended for use with complex measure strings. Finds the unique set
+    of descriptors used so that DescriptorToRhythmMap entries can be initialized.
+
+    Args:
+        complex_measure_str (str): The raw complex measure string.
+
+    Returns:
+        Set[str]: A unique set of instrument descriptors used in the measure.
+    """
+
     return set(complex_measure_str) - set((COMPLEX_SLICE_CHARACTER, COMPLEX_SLICE_CHARACTER))
 
 
 def parse_complex_measure(raw_complex_measure: str) -> DescriptorToRhythmMap:
+    """
+    Transforms the raw complex measure string into it's DescriptorToRhythmMap.
+
+    Args:
+        raw_complex_measure (str): The raw complex measure string.
+
+    Returns:
+        DescriptorToRhythmMap: A map from instrument descriptor to its rhythm string.
+    """
+    
     # this method doesn't check to make sure length of the measure is correct - assumes this is done elsewhere
     descriptors_used: Set[str] = determine_descriptors_used(raw_complex_measure)
     mapped = dict.fromkeys(descriptors_used, '')
@@ -138,6 +206,13 @@ def parse_complex_measure(raw_complex_measure: str) -> DescriptorToRhythmMap:
 
 
 def complex_generator() -> Part:
+    """
+    Guides the user through creating a groove using the complex generator.
+
+    Returns:
+        Part: The Part object, which can be rendered as musical notation or further processed.
+    """
+
     temporal_properties: TemporalProperties = collect_temporal_properties()
     num_measures: int = collect_num_measures()
     measures: List[DescriptorToRhythmMap] = []  # indices are measure_num - 1
