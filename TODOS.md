@@ -7,8 +7,6 @@
 
 
 # Housekeeping
-- Write function docstrings for generator.py
-- Mark internal methods with single leading underscore in generator.py (https://dbader.org/blog/meaning-of-underscores-in-python)
 - Ensure type annotations exist and are correct in generator.py
 - Document the syntax
 

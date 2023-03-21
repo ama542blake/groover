@@ -13,8 +13,60 @@ from json import dumps
 # e.g., "{'k': 'x  xx  x'}"
 DescriptorToRhythmMap = Dict[str, str]
 
-# each PercussionChord corresponds to each temporal position within the measure
-def raw_measures_to_stream(measure_strs: List[DescriptorToRhythmMap], temporal_properties: TemporalProperties) -> Part:
+def simple_generator() -> Part:
+    """
+    Guides the user through creating a groove using the simple generator.
+
+    Returns:
+        Part: The Part object, which can be rendered as musical notation or further processed.
+    """
+
+    temporal_properties: TemporalProperties = _collect_temporal_properties()
+    num_measures: int = _collect_num_measures()
+    to_use: str = _collect_instruments_to_use()
+    measures: List[DescriptorToRhythmMap] = []  # indices are measure_num - 1
+    subdivs_per_measure = temporal_properties.subdivisions_per_measure
+
+    print(f'Input your groove. Each measure should have {subdivs_per_measure} notes/rests per part')
+    for measure_idx in range(num_measures):
+        for (descriptor_idx, descriptor) in enumerate(to_use):
+            this_rhythm = ''
+            while len(this_rhythm) != subdivs_per_measure:
+                this_rhythm = input(f'Measure {measure_idx + 1} {descriptor_to_string[descriptor]} rhythm: ')
+            if descriptor_idx == 0:
+                measures.append({descriptor: this_rhythm})
+            else:
+                measures[measure_idx][descriptor] = this_rhythm
+
+    return raw_measures_to_stream(measures, temporal_properties=temporal_properties)
+
+
+def complex_generator() -> Part:
+    """
+    Guides the user through creating a groove using the complex generator.
+    The complex measure strings are converted into the same format that the
+    simple generator produces, before being converted to a Part object.
+    
+    Returns:
+        Part: The Part object, which can be rendered as musical notation or further processed.
+    """
+
+    temporal_properties: TemporalProperties = _collect_temporal_properties()
+    num_measures: int = _collect_num_measures()
+    measures: List[DescriptorToRhythmMap] = []  # indices are measure_num - 1
+    subdivs_per_measure = temporal_properties.subdivisions_per_measure
+
+    print(f'Input your groove. Each measure should have {subdivs_per_measure} notes/rests per measure')
+    for measure_idx in range(num_measures):
+        this_measure = input(f'Measure {measure_idx + 1}: ')
+        # TODO: make sure this is correct length
+        this_measure_map: DescriptorToRhythmMap = _parse_complex_measure(this_measure)
+        measures.append(this_measure_map)
+
+    return _raw_measures_to_stream(measures, temporal_properties=temporal_properties)
+
+
+def _raw_measures_to_stream(measure_strs: List[DescriptorToRhythmMap], temporal_properties: TemporalProperties) -> Part:
     """
     Takes raw measures (as strings) and converts them to a drum set Part.
     
@@ -59,7 +111,7 @@ def raw_measures_to_stream(measure_strs: List[DescriptorToRhythmMap], temporal_p
     return groove
 
 
-def collect_temporal_properties() -> TemporalProperties:
+def _collect_temporal_properties() -> TemporalProperties:
     """
     Collects temporal information from the user. Temporal information includes all
     information needed to determine time signature and note duration.
@@ -90,7 +142,7 @@ def collect_temporal_properties() -> TemporalProperties:
     return TemporalProperties(time_signature=time_sig, subdivide_by=subdivision)
 
 
-def collect_num_measures() -> int:
+def _collect_num_measures() -> int:
     """
     Asks the user how many measures the groove should be.
 
@@ -108,7 +160,7 @@ def collect_num_measures() -> int:
     return num_measures
 
 
-def collect_instruments_to_use() -> str:
+def _collect_instruments_to_use() -> str:
     """
     Asks the user to input which instruments they'd like to include in the groove.
     The user inputs a string of descriptors.
@@ -129,39 +181,10 @@ def collect_instruments_to_use() -> str:
     return to_use
 
 
-def simple_generator() -> Part:
-    """
-    Guides the user through creating a groove using the simple generator.
-
-    Returns:
-        Part: The Part object, which can be rendered as musical notation or further processed.
-    """
-
-    temporal_properties: TemporalProperties = collect_temporal_properties()
-    num_measures: int = collect_num_measures()
-    to_use: str = collect_instruments_to_use()
-    measures: List[DescriptorToRhythmMap] = []  # indices are measure_num - 1
-    subdivs_per_measure = temporal_properties.subdivisions_per_measure
-
-    print(f'Input your groove. Each measure should have {subdivs_per_measure} notes/rests per part')
-    for measure_idx in range(num_measures):
-        for (descriptor_idx, descriptor) in enumerate(to_use):
-            this_rhythm = ''
-            while len(this_rhythm) != subdivs_per_measure:
-                this_rhythm = input(f'Measure {measure_idx + 1} {descriptor_to_string[descriptor]} rhythm: ')
-            if descriptor_idx == 0:
-                measures.append({descriptor: this_rhythm})
-            else:
-                measures[measure_idx][descriptor] = this_rhythm
-
-    return raw_measures_to_stream(measures, temporal_properties=temporal_properties)
-
-
 COMPLEX_REST_CHARACTER = '_'  # the character that indicates a rest in the complex mode
 COMPLEX_SLICE_CHARACTER = ' '  # the character that specifies the end of a temporal slice in complex mode
 
-
-def determine_descriptors_used(complex_measure_str: str) -> Set[str]:
+def _determine_descriptors_used(complex_measure_str: str) -> Set[str]:
     """
     Intended for use with complex measure strings. Finds the unique set
     of descriptors used so that DescriptorToRhythmMap entries can be initialized.
@@ -176,7 +199,7 @@ def determine_descriptors_used(complex_measure_str: str) -> Set[str]:
     return set(complex_measure_str) - set((COMPLEX_SLICE_CHARACTER, COMPLEX_SLICE_CHARACTER))
 
 
-def parse_complex_measure(raw_complex_measure: str) -> DescriptorToRhythmMap:
+def _parse_complex_measure(raw_complex_measure: str) -> DescriptorToRhythmMap:
     """
     Transforms the raw complex measure string into it's DescriptorToRhythmMap.
 
@@ -186,9 +209,9 @@ def parse_complex_measure(raw_complex_measure: str) -> DescriptorToRhythmMap:
     Returns:
         DescriptorToRhythmMap: A map from instrument descriptor to its rhythm string.
     """
-    
+
     # this method doesn't check to make sure length of the measure is correct - assumes this is done elsewhere
-    descriptors_used: Set[str] = determine_descriptors_used(raw_complex_measure)
+    descriptors_used: Set[str] = _determine_descriptors_used(raw_complex_measure)
     mapped = dict.fromkeys(descriptors_used, '')
     # ensure no empty strings in the list (in case extra separator spaces are used)
     parsed_measure = filter(lambda item: item != '', raw_complex_measure.split(' '))
@@ -203,26 +226,3 @@ def parse_complex_measure(raw_complex_measure: str) -> DescriptorToRhythmMap:
             mapped[descriptor] += ' '
         
     return mapped
-
-
-def complex_generator() -> Part:
-    """
-    Guides the user through creating a groove using the complex generator.
-
-    Returns:
-        Part: The Part object, which can be rendered as musical notation or further processed.
-    """
-
-    temporal_properties: TemporalProperties = collect_temporal_properties()
-    num_measures: int = collect_num_measures()
-    measures: List[DescriptorToRhythmMap] = []  # indices are measure_num - 1
-    subdivs_per_measure = temporal_properties.subdivisions_per_measure
-
-    print(f'Input your groove. Each measure should have {subdivs_per_measure} notes/rests per measure')
-    for measure_idx in range(num_measures):
-        this_measure = input(f'Measure {measure_idx + 1}: ')
-        # TODO: make sure this is correct length
-        this_measure_map: DescriptorToRhythmMap = parse_complex_measure(this_measure)
-        measures.append(this_measure_map)
-
-    return raw_measures_to_stream(measures, temporal_properties=temporal_properties)
