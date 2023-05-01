@@ -1,7 +1,4 @@
 # General
-- Figure out how to set the project up to support type checking (select one of the options below)
-  - Pyright: https://github.com/microsoft/pyright/blob/main/docs/getting-started.md
-  - MyPy: https://mypy-lang.org/
 - Devise structure for project: https://docs.python-guide.org/writing/structure/
   - Fit existing things within this structure
 
