@@ -1,20 +1,17 @@
 from enum import Enum
 from re import sub
-from typing import Dict, List, Set, Sized, Union
-from concepts.utils import get_length_of_longest_item
+from typing import Dict, List, Set, Union
+from notationutils import MEASURE_DELIMITER, ShortDescriptorToRhythmMap, Notation, short_descriptor_to_full, short_descriptor_info, short_descriptor_to_notation
+from generalutils import get_length_of_longest_item
 from timesignatureutils import InvalidTimeSignatureException, TemporalProperties, parse_time_signature
 from music21.stream.base import Part, Measure
 from music21.percussion import PercussionChord
-from drumset import Notation, instrument_descriptors, descriptor_to_string, descriptor_to_notation
 from music21.note import Note, Rest
 from music21.clef import PercussionClef
 from music21.meter.base import TimeSignature
 from json import dumps
 
 """Provides the simple and complex generators."""
-
-# e.g., "{'k': 'x  xx  x'}"
-DescriptorToRhythmMap = Dict[str, str]
 
 class EntryMode(Enum):
     SERIAL = "s"
@@ -30,12 +27,12 @@ def simple_generator() -> Part:
 
     mode: EntryMode = _collect_entry_mode()
     if mode == EntryMode.SERIAL:
-        return _serial_simple_generator()
+        return _simple_serial_generator()
     else:  # mode == EntryMode.CONTINUOUS
-        return _continuous_simple_generator()
+        return _simple_continuous_generator()
     
 
-def _serial_simple_generator() -> Part:
+def _simple_serial_generator() -> Part:
     """
     Guides the user through creating a groove using the simple generator.
 
@@ -44,20 +41,20 @@ def _serial_simple_generator() -> Part:
     """
     temporal_properties: TemporalProperties = _collect_temporal_properties()
     to_use: str = _collect_instruments_to_use()
-    measures: List[DescriptorToRhythmMap] = []  # indices are measure_num - 1
+    measures: List[ShortDescriptorToRhythmMap] = []  # indices are measure_num - 1
     num_measures: int = _collect_num_measures()
     subdivs_per_measure: int = temporal_properties.subdivisions_per_measure
 
     print(f'Input your groove. Each measure should have {subdivs_per_measure} notes/rests per part')
     for measure_idx in range(num_measures):
-        for (descriptor_idx, descriptor) in enumerate(to_use):
+        for (descriptor_idx, short_desc) in enumerate(to_use):
             this_rhythm = ''
             while len(this_rhythm) != subdivs_per_measure:
-                this_rhythm = input(f'Measure {measure_idx + 1} {descriptor_to_string[descriptor]} rhythm: ')
+                this_rhythm = input(f'Measure {measure_idx + 1} {short_descriptor_to_full[short_desc]} rhythm: ')
             if descriptor_idx == 0:
-                measures.append({descriptor: this_rhythm})
+                measures.append({short_desc: this_rhythm})
             else:
-                measures[measure_idx][descriptor] = this_rhythm
+                measures[measure_idx][short_desc] = this_rhythm
 
     return _raw_measures_to_stream(measures, temporal_properties=temporal_properties)
 
@@ -67,7 +64,7 @@ class MeasureMismatchException(Exception):
         super().__init__("All parts must have the same number of measures")
 
 
-def _continuous_simple_generator() -> Part:
+def _simple_continuous_generator() -> Part:
     """
     Guides the user through the simple generator in continuous entry mode.
     
@@ -79,26 +76,26 @@ def _continuous_simple_generator() -> Part:
     """
     temporal_properties: TemporalProperties = _collect_temporal_properties()
     to_use: str = _collect_instruments_to_use()
-    measures: List[DescriptorToRhythmMap] = []  # indices are measure_num - 1
+    measures: List[ShortDescriptorToRhythmMap] = []  # indices are measure_num - 1
     subdivs_per_measure: int = temporal_properties.subdivisions_per_measure
-    # maps descriptor to it's rhythm strings (one per measure)
-    descriptors_to_rhythms: Dict[str, List[str]] = {}
+    # maps short descriptor to it's rhythm strings (one per measure)
+    short_descs_to_rhythms: Dict[str, List[str]] = {}
 
     # get the longest descriptor string to determine how to pad the labels so rhythms line up
-    len_longest_descriptor = get_length_of_longest_item(list(map(lambda d: descriptor_to_string[d], to_use)))
+    len_longest_full_desc = get_length_of_longest_item(list(map(lambda d: short_descriptor_to_full[d], to_use)))
 
     print(f'Input your groove. Each measure should have {subdivs_per_measure} notes/rests per part:\n')
-    for descriptor in to_use:
-        part_name = descriptor_to_string[descriptor]
+    for short_desc in to_use:
+        full_desc: str = short_descriptor_to_full[short_desc]
         # ensure all rhythms line up vertically
-        padding_amt: int = len_longest_descriptor - len(part_name)
-        this_part_str: str = input(f'{part_name}: {" " * padding_amt}')
-        descriptors_to_rhythms[descriptor] = this_part_str.split('|')
+        padding_amt: int = len_longest_full_desc - len(full_desc)
+        this_part_str: str = input(f'{full_desc}: {" " * padding_amt}')
+        short_descs_to_rhythms[short_desc] = this_part_str.split(MEASURE_DELIMITER)
 
     num_measures: int = -1
-    measures: List[DescriptorToRhythmMap] = []  # indices are measure_num - 1
+    measures: List[ShortDescriptorToRhythmMap] = []  # indices are measure_num - 1
     # parse each individual part
-    for descriptor, rhythm_strs in descriptors_to_rhythms.items():
+    for short_desc, rhythm_strs in short_descs_to_rhythms.items():
         # -1 is to check that this isn't the first part being examined
         # if it is, then we need to use it as the standard for the number of measures for each part
         if num_measures != -1 and len(rhythm_strs) != num_measures:
@@ -107,9 +104,9 @@ def _continuous_simple_generator() -> Part:
         for measure_idx, rhythm_str in enumerate(rhythm_strs):
             if measure_idx == len(measures):
                 # need to add new map to the list
-                measures.append({descriptor: rhythm_str})
+                measures.append({short_desc: rhythm_str})
             else:
-                measures[measure_idx][descriptor] = rhythm_str
+                measures[measure_idx][short_desc] = rhythm_str
 
     return _raw_measures_to_stream(measures, temporal_properties)
 
@@ -126,20 +123,20 @@ def complex_generator() -> Part:
 
     temporal_properties: TemporalProperties = _collect_temporal_properties()
     num_measures: int = _collect_num_measures()
-    measures: List[DescriptorToRhythmMap] = []  # indices are measure_num - 1
+    measures: List[ShortDescriptorToRhythmMap] = []  # indices are measure_num - 1
     subdivs_per_measure: int = temporal_properties.subdivisions_per_measure
 
     print(f'Input your groove. Each measure should have {subdivs_per_measure} notes/rests per measure')
     for measure_idx in range(num_measures):
         this_measure = input(f'Measure {measure_idx + 1}: ')
         # TODO: make sure this is correct length
-        this_measure_map: DescriptorToRhythmMap = _parse_complex_measure(this_measure)
+        this_measure_map: ShortDescriptorToRhythmMap = _parse_complex_measure(this_measure)
         measures.append(this_measure_map)
 
     return _raw_measures_to_stream(measures, temporal_properties=temporal_properties)
 
 
-def _raw_measures_to_stream(measure_strs: List[DescriptorToRhythmMap], temporal_properties: TemporalProperties) -> Part:
+def _raw_measures_to_stream(measure_strs: List[ShortDescriptorToRhythmMap], temporal_properties: TemporalProperties) -> Part:
     """
     Takes raw measures (as strings) and converts them to a drum set Part.
     
@@ -167,9 +164,9 @@ def _raw_measures_to_stream(measure_strs: List[DescriptorToRhythmMap], temporal_
 
         for subdivision_idx in range(temporal_properties.subdivisions_per_measure):
             this_time_idx_pchord: PercussionChord = PercussionChord(duration=temporal_properties.duration)
-            for (descriptor, rhythm) in measure_dict.items():
+            for (short_desc, rhythm) in measure_dict.items():
                 if (rhythm[subdivision_idx] != ' '):  # is not a rest
-                    notation: Notation = descriptor_to_notation[descriptor]
+                    notation: Notation = short_descriptor_to_notation[short_desc]
                     note: Note = Note(pitch=notation[0])
                     note.notehead = notation[1]
                     this_time_idx_pchord.add(note)
@@ -268,9 +265,9 @@ def _collect_instruments_to_use() -> str:
 
     to_use = ''
     while to_use == '':
-        to_use = input(f'Which instruments do you want to use? Your options are:\n{instrument_descriptors}\n')
+        to_use = input(f'Which instruments do you want to use? Your options are:\n{short_descriptor_info}\n')
         for inst in to_use:
-            if inst not in instrument_descriptors:
+            if inst not in short_descriptor_info:
                 print(f'"{inst}" is not a valid option')
                 to_use = ''  # will force new input
 
@@ -280,10 +277,10 @@ def _collect_instruments_to_use() -> str:
 COMPLEX_REST_CHARACTER = '_'  # the character that indicates a rest in the complex mode
 COMPLEX_SLICE_CHARACTER = ' '  # the character that specifies the end of a temporal slice in complex mode
 
-def _determine_descriptors_used(complex_measure_str: str) -> Set[str]:
+def _determine_short_descriptors_used(complex_measure_str: str) -> Set[str]:
     """
     Intended for use with complex measure strings. Finds the unique set
-    of descriptors used so that DescriptorToRhythmMap entries can be initialized.
+    of short descriptors used so that DescriptorToRhythmMap entries can be initialized.
 
     Args:
         complex_measure_str (str): The raw complex measure string.
@@ -295,7 +292,7 @@ def _determine_descriptors_used(complex_measure_str: str) -> Set[str]:
     return set(complex_measure_str) - set((COMPLEX_SLICE_CHARACTER, COMPLEX_SLICE_CHARACTER))
 
 
-def _parse_complex_measure(raw_complex_measure: str) -> DescriptorToRhythmMap:
+def _parse_complex_measure(raw_complex_measure: str) -> ShortDescriptorToRhythmMap:
     """
     Transforms the raw complex measure string into it's DescriptorToRhythmMap.
 
@@ -307,7 +304,7 @@ def _parse_complex_measure(raw_complex_measure: str) -> DescriptorToRhythmMap:
     """
 
     # this method doesn't check to make sure length of the measure is correct - assumes this is done elsewhere
-    descriptors_used: Set[str] = _determine_descriptors_used(raw_complex_measure)
+    descriptors_used: Set[str] = _determine_short_descriptors_used(raw_complex_measure)
     mapped = dict.fromkeys(descriptors_used, '')
     # ensure no empty strings in the list (in case extra separator spaces are used)
     parsed_measure = filter(lambda item: item != '', raw_complex_measure.split(' '))
