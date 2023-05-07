@@ -1,6 +1,7 @@
+from enum import Enum
 from re import sub
-import this
-from typing import Dict, List, Set, Union
+from typing import Dict, List, Set, Sized, Union
+from concepts.utils import get_length_of_longest_item
 from timesignatureutils import InvalidTimeSignatureException, TemporalProperties, parse_time_signature
 from music21.stream.base import Part, Measure
 from music21.percussion import PercussionChord
@@ -15,6 +16,10 @@ from json import dumps
 # e.g., "{'k': 'x  xx  x'}"
 DescriptorToRhythmMap = Dict[str, str]
 
+class EntryMode(Enum):
+    SERIAL = "s"
+    CONTINUOUS = "c"
+
 def simple_generator() -> Part:
     """
     Guides the user through creating a groove using the simple generator.
@@ -23,10 +28,24 @@ def simple_generator() -> Part:
         Part: The Part object, which can be rendered as musical notation or further processed.
     """
 
+    mode: EntryMode = _collect_entry_mode()
+    if mode == EntryMode.SERIAL:
+        return _serial_simple_generator()
+    else:  # mode == EntryMode.CONTINUOUS
+        return _continuous_simple_generator()
+    
+
+def _serial_simple_generator() -> Part:
+    """
+    Guides the user through creating a groove using the simple generator.
+
+    Returns:
+        Part: The Part object, which can be rendered as musical notation or further processed.
+    """
     temporal_properties: TemporalProperties = _collect_temporal_properties()
-    num_measures: int = _collect_num_measures()
     to_use: str = _collect_instruments_to_use()
     measures: List[DescriptorToRhythmMap] = []  # indices are measure_num - 1
+    num_measures: int = _collect_num_measures()
     subdivs_per_measure: int = temporal_properties.subdivisions_per_measure
 
     print(f'Input your groove. Each measure should have {subdivs_per_measure} notes/rests per part')
@@ -41,6 +60,58 @@ def simple_generator() -> Part:
                 measures[measure_idx][descriptor] = this_rhythm
 
     return _raw_measures_to_stream(measures, temporal_properties=temporal_properties)
+
+
+class MeasureMismatchException(Exception):
+    def __init__(self):
+        super().__init__("All parts must have the same number of measures")
+
+
+def _continuous_simple_generator() -> Part:
+    """
+    Guides the user through the simple generator in continuous entry mode.
+    
+    Raises:
+        MeasureMismatchException: Raised when not all parts have the same number of measures.
+
+    Returns:
+        Part: The Part object, which can be rendered as musical notation or further processed.
+    """
+    temporal_properties: TemporalProperties = _collect_temporal_properties()
+    to_use: str = _collect_instruments_to_use()
+    measures: List[DescriptorToRhythmMap] = []  # indices are measure_num - 1
+    subdivs_per_measure: int = temporal_properties.subdivisions_per_measure
+    # maps descriptor to it's rhythm strings (one per measure)
+    descriptors_to_rhythms: Dict[str, List[str]] = {}
+
+    # get the longest descriptor string to determine how to pad the labels so rhythms line up
+    len_longest_descriptor = get_length_of_longest_item(list(map(lambda d: descriptor_to_string[d], to_use)))
+
+    print(f'Input your groove. Each measure should have {subdivs_per_measure} notes/rests per part:\n')
+    for descriptor in to_use:
+        part_name = descriptor_to_string[descriptor]
+        # ensure all rhythms line up vertically
+        padding_amt: int = len_longest_descriptor - len(part_name)
+        this_part_str: str = input(f'{part_name}: {" " * padding_amt}')
+        descriptors_to_rhythms[descriptor] = this_part_str.split('|')
+
+    num_measures: int = -1
+    measures: List[DescriptorToRhythmMap] = []  # indices are measure_num - 1
+    # parse each individual part
+    for descriptor, rhythm_strs in descriptors_to_rhythms.items():
+        # -1 is to check that this isn't the first part being examined
+        # if it is, then we need to use it as the standard for the number of measures for each part
+        if num_measures != -1 and len(rhythm_strs) != num_measures:
+            raise MeasureMismatchException()
+
+        for measure_idx, rhythm_str in enumerate(rhythm_strs):
+            if measure_idx == len(measures):
+                # need to add new map to the list
+                measures.append({descriptor: rhythm_str})
+            else:
+                measures[measure_idx][descriptor] = rhythm_str
+
+    return _raw_measures_to_stream(measures, temporal_properties)
 
 
 def complex_generator() -> Part:
@@ -142,6 +213,29 @@ def _collect_temporal_properties() -> TemporalProperties:
 
     # add the subdivision to the time signature
     return TemporalProperties(time_signature=time_sig, subdivide_by=subdivision)
+
+
+def _collect_entry_mode() -> EntryMode:
+    """
+    Asks the user whether they want to enter measure by measure, or many measures at once.
+
+    Returns:
+        EntryMode: The enumerated entry mode resulting from user input.
+    """
+
+    mode_str: str = ''
+    while mode_str == '':
+        mode_str = input(
+                    'Which mode do you want to use to enter the groove? To input multiple lines '
+                     + 'serially (one-by-one), enter "s", If you want to input continuously (multiple at a time), input "c".\n'
+                )
+        if mode_str != 's' and mode_str != 'c':
+            mode_str = ''  # force loop to repeat
+    
+    if mode_str == 's':
+        return EntryMode.SERIAL
+    else:  ## mode_str == 'c'
+        return EntryMode.CONTINUOUS
 
 
 def _collect_num_measures() -> int:
