@@ -121,6 +121,20 @@ def complex_generator() -> Part:
         Part: The Part object, which can be rendered as musical notation or further processed.
     """
 
+    mode: EntryMode = _collect_entry_mode()
+    if mode == EntryMode.SERIAL:
+        return _complex_serial_generator()
+    else:  # mode == EntryMode.CONTINUOUS
+        return _complex_continuous_generator()
+
+
+def _complex_serial_generator() -> Part:
+    """
+    Guides the user through the complex generator in continuous entry mode.
+
+    Returns:
+        Part: The Part object, which can be rendered as musical notation or further processed.
+    """
     temporal_properties: TemporalProperties = _collect_temporal_properties()
     num_measures: int = _collect_num_measures()
     measures: List[ShortDescriptorToRhythmMap] = []  # indices are measure_num - 1
@@ -128,12 +142,28 @@ def complex_generator() -> Part:
 
     print(f'Input your groove. Each measure should have {subdivs_per_measure} notes/rests per measure')
     for measure_idx in range(num_measures):
-        this_measure = input(f'Measure {measure_idx + 1}: ')
+        raw_measure = input(f'Measure {measure_idx + 1}: ')
+        # converts the complex measure into the map between short descriptors and rhtygm strings
         # TODO: make sure this is correct length
-        this_measure_map: ShortDescriptorToRhythmMap = _parse_complex_measure(this_measure)
-        measures.append(this_measure_map)
+        parsed_measure: ShortDescriptorToRhythmMap = _parse_complex_measure(raw_measure)
+        measures.append(parsed_measure)
 
     return _raw_measures_to_stream(measures, temporal_properties=temporal_properties)
+
+
+def _complex_continuous_generator() -> Part:
+    temporal_properties: TemporalProperties = _collect_temporal_properties()
+    measures: List[ShortDescriptorToRhythmMap] = []  # indices are measure_num - 1
+    subdivs_per_measure: int = temporal_properties.subdivisions_per_measure
+
+    raw_input = input(f'Input your groove. Each measure should have {subdivs_per_measure} notes/rests per measure\n')
+    # REFACTOR: this functionality is also used in the _simple_serial_generator
+    for raw_measure in raw_input.split(MEASURE_DELIMITER):
+        # TODO: make sure each measure is the correct length
+        parsed_measure: ShortDescriptorToRhythmMap = _parse_complex_measure(raw_measure)
+        measures.append(parsed_measure)
+
+    return _raw_measures_to_stream(measures, temporal_properties)
 
 
 def _raw_measures_to_stream(measure_strs: List[ShortDescriptorToRhythmMap], temporal_properties: TemporalProperties) -> Part:
