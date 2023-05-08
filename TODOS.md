@@ -1,12 +1,13 @@
 # General
 - Devise structure for project: https://docs.python-guide.org/writing/structure/
   - Fit existing things within this structure
+- Pass command line argument to the program to determine which generator to use, rather
+than asking the user
 
 # Housekeeping
 - Document the syntax
 
 # Generation
-  - Add ability to input multiple measures at once
   - Error handling
   - Support tuplets
   - Add commands/modifiers

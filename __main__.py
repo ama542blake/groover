@@ -4,10 +4,10 @@ SIMPLE_MODE_SELECTOR = 'simple'
 COMPLEX_MODE_SELECTOR = 'complex'
 
 if __name__ == "__main__":
-    mode = input(f"Enter mode - '{SIMPLE_MODE_SELECTOR}' or '{COMPLEX_MODE_SELECTOR}'\n")
-    if mode == SIMPLE_MODE_SELECTOR:
+    mode_str = input(f"Enter mode - '{SIMPLE_MODE_SELECTOR}' or '{COMPLEX_MODE_SELECTOR}'\n")
+    if mode_str == SIMPLE_MODE_SELECTOR:
         simple_generator().show()
-    elif mode == COMPLEX_MODE_SELECTOR:
+    elif mode_str == COMPLEX_MODE_SELECTOR:
         complex_generator().show()
 
 # for extractor
