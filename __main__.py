@@ -1,14 +1,44 @@
+import argparse
+from http.client import REQUEST_ENTITY_TOO_LARGE
+import sys
+from typing import Literal
 from generator import complex_generator, simple_generator
 
-SIMPLE_MODE_SELECTOR = 'simple'
-COMPLEX_MODE_SELECTOR = 'complex'
+INDEPENDENT_PARSER_FLAG = 'i'
+COMPOSITE_PARSER_FLAG = 'c'
 
 if __name__ == "__main__":
-    mode_str = input(f"Enter mode - '{SIMPLE_MODE_SELECTOR}' or '{COMPLEX_MODE_SELECTOR}'\n")
-    if mode_str == SIMPLE_MODE_SELECTOR:
+    arg_parser = argparse.ArgumentParser(
+        prog="Groover",
+        description='A text-based tool for quick and concise but expressive drum groove transcription.'
+    )
+    arg_parser.add_argument(
+        "parser",
+        type=str,
+        options=[INDEPENDENT_PARSER_FLAG, COMPOSITE_PARSER_FLAG],
+        required=True,
+        help='The parser to use.'
+    )
+    arg_parser.add_argument(
+        '--individual', '-i',
+        help='When passed, indicates that measures will be asked for one at a time. Only valid with the independent parser.',
+        action="store_true"
+    )
+    arg_parser.parse_args()
+
+    mode: Literal['simple', 'complex'] = arg_parser.mode # type: ignore
+    if mode == 'parser':
         simple_generator().show()
-    elif mode_str == COMPLEX_MODE_SELECTOR:
-        complex_generator().show()
+    elif mode == 'complex':
+        complex_generator.show()
+    else:
+        sys.exit(1)
+    
+    # mode_str = input(f"Enter mode - '{SIMPLE_MODE_SELECTOR}' or '{COMPLEX_MODE_SELECTOR}'\n")
+    # if mode_str == SIMPLE_MODE_SELECTOR:
+    #     simple_generator().show()
+    # elif mode_str == COMPLEX_MODE_SELECTOR:
+    #     complex_generator().show()
 
 # for extractor
 # if __name__ == "__main__":
@@ -26,3 +56,5 @@ if __name__ == "__main__":
 #         sys.exit(-1)
 
 #     app.run(fname)
+
+
