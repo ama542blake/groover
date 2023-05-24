@@ -17,7 +17,7 @@ class EntryMode(Enum):
     SERIAL = "s"
     CONTINUOUS = "c"
 
-def simple_generator() -> Part:
+def independent_parser() -> Part:
     """
     Guides the user through creating a groove using the simple generator.
 
@@ -29,10 +29,10 @@ def simple_generator() -> Part:
     if mode == EntryMode.SERIAL:
         return _simple_serial_generator()
     else:  # mode == EntryMode.CONTINUOUS
-        return _simple_continuous_generator()
+        return simple_continuous_generator()
     
 
-def _simple_serial_generator() -> Part:
+def simple_serial_generator() -> Part:
     """
     Guides the user through creating a groove using the simple generator.
 
@@ -64,7 +64,7 @@ class MeasureMismatchException(Exception):
         super().__init__("All parts must have the same number of measures")
 
 
-def _simple_continuous_generator() -> Part:
+def simple_continuous_generator() -> Part:
     """
     Guides the user through the simple generator in continuous entry mode.
     

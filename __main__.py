@@ -2,7 +2,7 @@ import argparse
 from http.client import REQUEST_ENTITY_TOO_LARGE
 import sys
 from typing import Literal
-from generator import complex_generator, simple_generator
+from generator import simple_continuous_generator, _simple_serial_generator, complex_generator, simple_generator, simple_serial_generator
 
 INDEPENDENT_PARSER_FLAG = 'i'
 COMPOSITE_PARSER_FLAG = 'c'
@@ -12,24 +12,32 @@ if __name__ == "__main__":
         prog="Groover",
         description='A text-based tool for quick and concise but expressive drum groove transcription.'
     )
+    arg_subparser = arg_parser.add_subparsers()
     arg_parser.add_argument(
         "parser",
         type=str,
-        options=[INDEPENDENT_PARSER_FLAG, COMPOSITE_PARSER_FLAG],
+        choices=[INDEPENDENT_PARSER_FLAG, COMPOSITE_PARSER_FLAG],
         required=True,
         help='The parser to use.'
     )
-    arg_parser.add_argument(
-        '--individual', '-i',
+    v_parser = arg_subparser.add_parser('v')
+    v_parser.add_argument(
+        '--vertical', '-v',
         help='When passed, indicates that measures will be asked for one at a time. Only valid with the independent parser.',
         action="store_true"
     )
     arg_parser.parse_args()
 
-    mode: Literal['simple', 'complex'] = arg_parser.mode # type: ignore
-    if mode == 'parser':
-        simple_generator().show()
-    elif mode == 'complex':
+    # 'i': individual parser - 'c': composite parser
+    mode: Literal['i', 'c'] = arg_parser.parser  # type: ignore
+    if mode == 'i':
+        print('individual')
+        if (arg_parser.individual): # type: ignore
+            simple_serial_generator().show()
+        else:
+            simple_continuous_generator().show()
+    elif mode == 'c':
+        print("Composite")
         complex_generator.show()
     else:
         sys.exit(1)
