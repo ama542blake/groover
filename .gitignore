@@ -2,3 +2,7 @@
 *.iml
 .idea/*
 /venv/*
+*.java
+*.class
+*.interp
+*.tokens
