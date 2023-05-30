@@ -6,3 +6,4 @@
 *.class
 *.interp
 *.tokens
+/grammars/src/*
