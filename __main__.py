@@ -33,8 +33,11 @@ if __name__ == "__main__":
     if mode == 'i':
         print('individual')
         if (arg_parser.individual): # type: ignore
-            simple_serial_generator().show()
+            raise NotImplementedError("Individual parser has not yet been implemented")
+            
+            # simple_serial_generator().show()
         else:
+            raise NotImplementedError("Composite parser has not yet been implemented")
             simple_continuous_generator().show()
     elif mode == 'c':
         print("Composite")
