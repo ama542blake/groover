@@ -27,7 +27,7 @@ def independent_parser() -> Part:
 
     mode: EntryMode = _collect_entry_mode()
     if mode == EntryMode.SERIAL:
-        return _simple_serial_generator()
+        return simple_serial_generator()
     else:  # mode == EntryMode.CONTINUOUS
         return simple_continuous_generator()
     

@@ -1,0 +1,1 @@
+antlr4 ../PreambleTokens.g4 -o ../testable/preamble
