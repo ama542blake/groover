@@ -1,1 +1,1 @@
-antlr4 ../PreambleTokens.g4 -o ../testable/preamble
+antlr4 PreambleTokens.g4 -o testable/preamble
