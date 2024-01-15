@@ -7,12 +7,8 @@ options { tokenVocab = PreambleLexer; }
     done to ensure each of these is only matched once.
  */
 // TODO: parse tree walker must ensure that each of these def rules are matched only once
-preamble: PREAMBLE_OPENER preambleField+ PREAMBLE_CLOSER ;
-preambleField: titleDef
-    | composerDef
-    | tsDef
-    | subdivDef
-    ;
+preamble: PREAMBLE_OPENER preambleField+ PREAMBLE_CLOSER EOF ;
+preambleField: ( titleDef | composerDef | tsDef | subdivDef ) ;
 titleDef: KW_TITLE NAMED_ITEM ;  // give the groove a title
 composerDef: KW_COMPOSER NAMED_ITEM ;  // name the groove's composer
 tsDef: KW_TS timeSignature; // specify the time signature
