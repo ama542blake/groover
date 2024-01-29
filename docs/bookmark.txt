@@ -1,19 +1,10 @@
 *This file explains the current state of the project. In other words, it explains
 where I'm leaving off so that I know what's going on when I pick it back up. It should
-be updated each time I complete a session of work on the project.
+be updated each time I complete a session of work on the project.å
 
-1/15/24:
-- Updates were just done that fixed some major issues with parsing the file's preamble.
-
-- There are some lingering issues with errors such as:
-    "token recognition error at: '\n'"
-which makes no sense because the NEWLINE rule should recognize and discard this. As
-far as I can tell, each of the characters that cause this error should be recognizable.
-
-- Need to refactor some of the rules from PreambleLexer into a common Lexer token file.
-Rules such as NAMED_ITEM, or INT may be more generally useful.
-
-- I am having trouble with recognition of the timeSignature parser rule. It seems that
-INTs can't be matched. Along with this, I am unable to successfully parse a name which
-is an int - such as "TITLE: 5", but this should be considered valid.
-
+1/28/24:
+- Fixed token recognition issues by removing lexical mode
+- Updated the test-preamble script to be able to take arguments for start rule and test file,
+  both of which are optional.
+- Next things that should be done are adding this functionality to other testing
+  scripts, and moving these scripts to their own directory.
