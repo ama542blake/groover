@@ -1,10 +1,18 @@
 *This file explains the current state of the project. In other words, it explains
 where I'm leaving off so that I know what's going on when I pick it back up. It should
-be updated each time I complete a session of work on the project.å
+be updated each time I complete a session of work on the project. This is also different
+from TODOS.md, which consider what needs to be done in the long-term. Next steps listed
+in this file are much shorter-term (will be addressed in the next few working sessions).
 
-1/28/24:
-- Fixed token recognition issues by removing lexical mode
-- Updated the test-preamble script to be able to take arguments for start rule and test file,
-  both of which are optional.
-- Next things that should be done are adding this functionality to other testing
-  scripts, and moving these scripts to their own directory.
+1/30/24:
+- Started cleaning up the file structure for grammars/scripts. Not everything has been moved
+  around yet - I'll put things in their places as I get to checking them for correctness/relevance.
+- Next steps:
+  - Add more preamble tests
+  - Check how necessary other scripts are, and update them to...
+    - Reflect the updated file structure
+    - Accept options/arguments as needed
+  - Find better place for independent_parser_runner.py
+- The scripts are way too reliant on relative paths. It might be useful to add a configuration file
+  or scripts (or maybe even one of the start up scripts) to define these paths in system variables
+  so that all paths can be written absolutely.

@@ -1,1 +1,0 @@
-antlr4 PreambleLexer.g4 -o testable/preamble

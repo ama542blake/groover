@@ -1,3 +1,8 @@
+# Runs the testable version of the preamble.
+# Assumes parser/lexer have already been generated (gen-preamble-test.sh).
+
+# TODO: this will not work with updated file structure. Need to double check all paths
+
 OPTIND=1
 START_RULE=preamble
 
