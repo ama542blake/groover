@@ -11,3 +11,5 @@ this is my attempt to combine the two things.
 
 While I am designing this primarily with my needs in mind, if you would like to try
 it out and give me feedback, please feel free to <a href="mailto:ama542blake@gmail.com">email me</a>.
+
+In order to run the scrips, the $GROOVER_ROOT environment variable needs to be set to the root directory of the project.
